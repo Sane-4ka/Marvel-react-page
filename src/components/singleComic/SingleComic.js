@@ -1,18 +1,77 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {Helmet} from 'react-helmet'
+
+import useMarvelService from '../../services/MarvelService';
+import Spinner from '../spinner/spinner';
+import ErrorMessage from '../errorMessage/ErrorMessage';
+
 import './singleComic.scss';
-import xMen from '../../resources/img/x-men.png';
+import AppBanner from '../appBanner/AppBanner';
 
 const SingleComic = () => {
+    const {comicId, charName} = useParams();
+    const [item, setItem] = useState(null);
+    const {loading, error, getComic, clearError, getCharByName} = useMarvelService();
+
+    useEffect(() => {
+        updateItem()
+    }, [comicId, charName]);
+
+    const updateItem = () => {
+        clearError()
+        if (comicId) {
+            getComic(comicId)
+            .then(onItemLoaded)   
+        }
+        if (charName) {
+            getCharByName(charName)
+                .then(onItemLoaded) 
+        } 
+    }
+
+    const onItemLoaded = (item) => {
+        setItem(item)
+    }
+
+    const errorMessage = error ? <ErrorMessage/> : null;
+    const spinner = loading ? <Spinner/> : null;
+    const content = !(loading || error || !item) ? <View item={(item)} comicPage={comicId} /> : null;
+
+    return (
+        <>
+            <AppBanner/>
+            {errorMessage}
+            {spinner}
+            {content}
+        </>
+    )
+}
+
+const View = ({item, comicPage}) => {
+    const  {title, name, description, pageCount, price,thumbnail, language} = item;
+    const navigate = useNavigate();
+
     return (
         <div className="single-comic">
-            <img src={xMen} alt="x-men" className="single-comic__img"/>
+            <Helmet>
+                <meta
+                    name="description"
+                    content={`${title} ${comicPage ? `comics` : `character`} book`}
+                    />
+                <title>{title}</title>
+            </Helmet>
+            <img src={thumbnail} alt={title} className="single-comic__img"/>
             <div className="single-comic__info">
-                <h2 className="single-comic__name">X-Men: Days of Future Past</h2>
-                <p className="single-comic__descr">Re-live the legendary first journey into the dystopian future of 2013 - where Sentinels stalk the Earth, and the X-Men are humanity's only hope...until they die! Also featuring the first appearance of Alpha Flight, the return of the Wendigo, the history of the X-Men from Cyclops himself...and a demon for Christmas!?</p>
-                <p className="single-comic__descr">144 pages</p>
-                <p className="single-comic__descr">Language: en-us</p>
-                <div className="single-comic__price">9.99$</div>
+                <h2 className="single-comic__name">{title ? title : name}</h2>
+                <p className="single-comic__descr">{description}</p>
+                {comicPage ? <>
+                    <p className="single-comic__descr">{pageCount}</p>
+                    <p className="single-comic__descr">Language: {language}</p>
+                    <div className="single-comic__price">{price}</div> 
+                </> : null}
             </div>
-            <a href="#" className="single-comic__back">Back to all</a>
+            <div onClick={() => navigate(-1)} className="single-comic__back">Back to all</div>
         </div>
     )
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton';
@@ -11,46 +12,25 @@ import './charInfo.scss';
 const CharInfo = (props) => {
     
     const [char, setChar] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
     
-    const marvelService = new MarvelService();
+    const {loading, error, getCharacter, clearError} = useMarvelService();
 
     useEffect(() => {
         updateChar()
     }, [props.charId]);
-
-    // componentDidUpdate(prevProps, prevState) {
-    //     if (this.props.charId !== prevProps.charId) {
-    //         this.updateChar();
-    //     }
-    // }    
 
     const updateChar = () => {
         const {charId} = props;
         if (!charId) {
             return;
         }
-        onCharLoading();
-        marvelService
-            .getCharacter(charId)
+        clearError()
+        getCharacter(charId)
             .then(onCharLoaded)
-            .catch(onError)
     }
 
-    const onCharLoaded = (charD) => {
-        setChar(char => charD)
-        setLoading(loading => false);
-        setError(false)
-    }
-
-    const onCharLoading = () => {
-        setLoading(loading => true);
-    }
-
-    const onError = () => {
-        setLoading(loading => false);
-        setError(true)
+    const onCharLoaded = (char) => {
+        setChar(char)
     }
 
     const skeleton = char || loading || error ? null : <Skeleton/>;
@@ -103,7 +83,7 @@ const View = ({char}) => {
                     if (i > 10) return;
                     return (
                         <li key={i} className="char__comics-item">
-                            {item.name}
+                            <Link to={`/comics/${item.resourceURI.slice(43)}`} >{item.name}</Link>
                         </li> 
                     )
                 })

@@ -46,3 +46,17 @@
         color: #fff;
     }
 }
+.char__item-enter {
+    opacity: 0;
+  }
+  .char__item-enter-active {
+    opacity: 1;
+    transition: opacity 700ms ease-in;
+  }
+  .char__item-exit {
+    opacity: 1;
+  }
+  .char__item-exit-active {
+    opacity: 0;
+    transition: opacity 700ms ease-in;
+  }
