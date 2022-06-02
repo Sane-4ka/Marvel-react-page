@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useField, Formik, Field, Form, ErrorMessage as FormikErrorMes, FieldArray } from 'formik';
+import { Formik, Field, Form, ErrorMessage as FormikErrorMes } from 'formik';
 import * as Yup from 'yup';
 
 import { Link } from 'react-router-dom';
@@ -9,21 +9,39 @@ import Spinner from '../spinner/spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import './FindChar.scss'
 
+const setContent = (process, conclusion) => {
+    switch (process) {
+        case 'waiting':
+            return null;
+            break;
+        case 'loading':
+            return <Spinner/>;
+            break;
+        case 'confirmed':
+            return (<>
+                        {conclusion}
+                    </>)
+            // return <Component/>;
+            break;
+        case 'error':
+            return <div className="char__search-critical-error"><ErrorMessage/></div>;
+            break;
+        default: 
+            throw new Error('Unexpected process state');
+            break;
+    }
+}
+
 const FindChar = () => {
     const [char, setChar] = useState(null);
     const [conclusion, setConclusion] = useState(null)
-    const {loading, error, getCharByName, clearError} = useMarvelService();
-
-    // const inpComponent = ({label, ...props}) => {
-    // const [field, meta] = useField();    
-    // return ()
-    // }
-   
+    const {process, setProcess, getCharByName, clearError} = useMarvelService();
 
     const findChar = (charName) => {
         clearError();
         getCharByName(charName)
             .then(charData => setChar(charData))
+            .then(() => setProcess('confirmed'))
     }
 
     useEffect(() => {    
@@ -41,8 +59,8 @@ const FindChar = () => {
             </div>)
     }, [char]);
 
-    const errorMessage = error ? <div className="char__search-critical-error"><ErrorMessage /></div> : null;
-
+    // const errorMessage = error ? <div className="char__search-critical-error"><ErrorMessage /></div> : null;
+    
     return (
         <>
         <Formik
@@ -70,7 +88,8 @@ const FindChar = () => {
                     <button 
                         type='submit' 
                         className="button button__main"
-                        disabled={loading}>
+                        // disabled={loading}
+                        >
                         <div className="inner">find</div>
                     </button>
                 </div>
@@ -82,12 +101,10 @@ const FindChar = () => {
                     )
                 }}
                 </FormikErrorMes>
-                {conclusion}
-                {/* {console.log(FieldArray)} */}
-                {/* {formik.values.charName.length = 0 ? conclusion : null} */}
+                {setContent(process, conclusion)}
             </Form>  
         </Formik>
-        {errorMessage}
+        {/* {errorMessage} */}
         </>
     ) 
 }
